@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>心锚探索器 | 发现你的念想</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #fff;
+        }
+        
+        .page {
+            min-height: 100vh;
+            display: none;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 首页样式 */
+        .home-page {
+            text-align: center;
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .anchor-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .anchor-icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(233, 69, 96, 0.5));
+        }
+        
+        .title {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #fff, #e94560, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 2px;
+            margin-bottom: 50px;
+        }
+        
+        .start-btn {
+            padding: 18px 60px;
+            background: linear-gradient(135deg, #e94560, #c23a51);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-size: 16px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.4);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(233, 69, 96, 0.6);
+        }
+        
+        .hint-text {
+            margin-top: 30px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            max-width: 280px;
+            line-height: 1.8;
+        }
+        
+        /* 问题页面样式 */
+        .question-page {
+            padding-top: 60px;
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        
+        .question-number {
+            font-size: 14px;
+            color: #e94560;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        .question-text {
+            font-size: 22px;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 50px;
+            font-weight: 300;
+            max-width: 320px;
+        }
+        
+        .options-container {
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .option {
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: #e94560;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .option:hover, .option.selected {
+            background: rgba(233, 69, 96, 0.1);
+            border-color: rgba(233, 69, 96, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .option.selected::before {
+            transform: scaleY(1);
+        }
+        
+        .option-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .next-btn {
+            margin-top: 30px;
+            padding: 15px 50px;
+            background: transparent;
+            border: 1px solid #e94560;
+            border-radius: 50px;
+            color: #e94560;
+            font-size: 14px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .next-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .next-btn:hover {
+            background: #e94560;
+            color: #fff;
+        }
+        
+        /* 结果页面样式 */
+        .result-page {
+            text-align: center;
+            padding-top: 40px;
+        }
+        
+        .result-icon {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .result-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(233,69,96,0.3) 0%, transparent 70%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        .result-type {
+            font-size: 14px;
+            color: #e94560;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+        
+        .result-title {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+        }
+        
+        .result-desc {
+            font-size: 15px;
+            line-height: 2;
+            color: rgba(255,255,255,0.8);
+            max-width: 320px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .anchors-list {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            max-width: 350px;
+            text-align: left;
+        }
+        
+        .anchors-title {
+            font-size: 13px;
+            color: #e94560;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .anchor-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.6;
+        }
+        
+        .anchor-item:last-child {
+            border-bottom: none;
+        }
+        
+        .share-section {
+            margin-top: 20px;
+        }
+        
+        .share-btn {
+            padding: 16px 50px;
+            background: linear-gradient(135deg, #e94560, #c23a51);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-size: 15px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.4);
+        }
+        
+        .restart-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+        
+        .hidden-easter-egg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            opacity: 0.1;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .hidden-easter-egg:hover {
+            opacity: 0.5;
+        }
+        
+        /* 粒子背景 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: particle-float 15s infinite;
+        }
+        
+        @keyframes particle-float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 彩蛋页面 */
+        .easter-page {
+            background: #000;
+        }
+        
+        .easter-content {
+            text-align: center;
+            max-width: 320px;
+        }
+        
+        .easter-title {
+            font-size: 18px;
+            color: #e94560;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+        
+        .easter-text {
+            font-size: 14px;
+            line-height: 2.2;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .easter-signature {
+            margin-top: 40px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 2px;
+        }
+        
+        /* 手册页面样式 */
+        .manual-page {
+            padding: 60px 20px 40px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .manual-page.active {
+            display: block;
+        }
+        
+        .manual-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .manual-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #fff, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .manual-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+        }
+        
+        .manual-section {
+            margin-bottom: 35px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            color: #e94560;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            padding-left: 12px;
+            border-left: 3px solid #e94560;
+        }
+        
+        .section-content {
+            font-size: 14px;
+            line-height: 2;
+            color: rgba(255,255,255,0.85);
+        }
+        
+        .section-content p {
+            margin-bottom: 12px;
+        }
+        
+        .phase-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+        
+        .phase-title {
+            font-size: 14px;
+            color: #e94560;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .check-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .check-list li {
+            padding: 8px 0 8px 25px;
+            position: relative;
+            font-size: 13px;
+        }
+        
+        .check-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #e94560;
+        }
+        
+        .formula-box {
+            background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(233,69,96,0.05));
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px auto;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        
+        .formula-title {
+            font-size: 12px;
+            color: #e94560;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .formula-text {
+            font-size: 13px;
+            line-height: 2;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .mine-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(233, 69, 96, 0.5);
+        }
+        
+        .mine-title {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 8px;
+        }
+        
+        .mine-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+        
+        .guide-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid rgba(233, 69, 96, 0.5);
+            border-radius: 50px;
+            color: #e94560;
+            font-size: 13px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .guide-btn:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+        
+        .back-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        .highlight {
+            color: #e94560;
+            font-weight: 500;
+        }
+        
+        .warning-box {
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        
+        .warning-title {
+            font-size: 12px;
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+        
+        .warning-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- 首页 -->
+    <div class="page home-page active" id="home">
+        <div class="anchor-icon floating">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="20" r="8" stroke="#e94560" stroke-width="2" fill="none"/>
+                <line x1="50" y1="28" x2="50" y2="55" stroke="#e94560" stroke-width="2"/>
+                <line x1="35" y1="40" x2="65" y2="40" stroke="#e94560" stroke-width="2"/>
+                <path d="M35 55 Q50 75 65 55" stroke="#e94560" stroke-width="2" fill="none"/>
+                <line x1="35" y1="55" x2="30" y2="70" stroke="#e94560" stroke-width="2"/>
+                <line x1="65" y1="55" x2="70" y2="70" stroke="#e94560" stroke-width="2"/>
+                <circle cx="50" cy="50" r="40" stroke="#e94560" stroke-width="0.5" opacity="0.3"/>
+                <circle cx="50" cy="50" r="30" stroke="#e94560" stroke-width="0.5" opacity="0.2"/>
+            </svg>
+        </div>
+        <h1 class="title">心锚探索器</h1>
+        <p class="subtitle">DISCOVER YOUR HEART ANCHOR</p>
+        <button class="start-btn" onclick="startQuiz()">开始探索</button>
+        <p class="hint-text">
+            那些你心里硌着的东西<br>
+            那些说不出为什么的执念<br>
+            让我们帮你找到它们的名字
+        </p>
+    </div>
+    
+    <!-- 问题页面 -->
+    <div class="page question-page" id="question">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%"></div>
+        </div>
+        <div class="question-number" id="qNumber">问题 1/6</div>
+        <h2 class="question-text" id="qText">加载中...</h2>
+        <div class="options-container" id="options"></div>
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">继续</button>
+    </div>
+    
+    <!-- 结果页面 -->
+    <div class="page result-page" id="result">
+        <div class="result-icon">
+            <div class="result-glow"></div>
+            <div id="resultIconSvg"></div>
+        </div>
+        <div class="result-type" id="resultType">你的心锚类型</div>
+        <h2 class="result-title" id="resultTitle">-</h2>
+        <div class="result-desc" id="resultDesc">-</div>
+        <div class="anchors-list">
+            <div class="anchors-title">属于你的「念想」清单</div>
+            <div id="anchorsList"></div>
+        </div>
+        <div class="share-section">
+            <button class="share-btn" onclick="shareResult()">分享我的心锚</button>
+            <br>
+            <button class="guide-btn" onclick="showPage('manual')">📖 查看心锚生产线</button>
+            <br>
+            <button class="restart-btn" onclick="restart()">再次探索</button>
+        </div>
+    </div>
+    
+    <!-- 隐藏彩蛋页 -->
+    <div class="page easter-page" id="easter">
+        <div class="easter-content">
+            <div class="easter-title">✦ 隐藏的念想 ✦</div>
+            <div class="easter-text">
+                <p>你找到了这个页面。</p>
+                <br>
+                <p>这说明你有发现的眼睛，<br>也有等待的耐心。</p>
+                <br>
+                <p>真正的心锚，<br>从来不是为了被发现，<br>而是为了被记得。</p>
+                <br>
+                <p>愿你在平凡的日子里，<br>总能找到属于自己的微光。</p>
+            </div>
+            <div class="easter-signature">— 心锚探索器</div>
+            <br><br>
+            <button class="restart-btn" onclick="showPage('home')">返回</button>
+        </div>
+    </div>
+    
+    <!-- 隐藏彩蛋触发按钮 -->
+    <div class="hidden-easter-egg" onclick="showPage('easter')" title="?">
+        <svg viewBox="0 0 30 30" fill="none">
+            <circle cx="15" cy="15" r="12" stroke="#e94560" stroke-width="1"/>
+            <text x="15" y="20" text-anchor="middle" fill="#e94560" font-size="14">?</text>
+        </svg>
+    </div>
+    
+    <!-- 心锚生产线手册页面 -->
+    <div class="page manual-page" id="manual">
+        <button class="back-btn" onclick="showPage('result')">← 返回结果</button>
+        
+        <div class="manual-header">
+            <h1 class="manual-title">心锚生产线</h1>
+            <p class="manual-subtitle">从0到1的完整操作手册</p>
+        </div>
+        
+        <!-- 核心理念 -->
+        <div class="manual-section">
+            <h3 class="section-title">核心理念</h3>
+            <div class="formula-box">
+                <div class="formula-title">心锚公式</div>
+                <div class="formula-text">
+                    表层内容（流量入口）<br>
+                    + 隐藏信息（筛选机制）<br>
+                    + 情感锚点（记忆抓手）<br>
+                    + 社群暗号（归属建立）<br>
+                    = <span class="highlight">念想内容</span><br>
+                    <small style="opacity:0.7">（用户心里的"咯噔"一下）</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 五大矿场 -->
+        <div class="manual-section">
+            <h3 class="section-title">第一部分：心锚的五大矿场</h3>
+            <div class="section-content">
+                <p>从这些地方挖掘你的心锚原材料：</p>
+                
+                <div class="mine-box">
+                    <div class="mine-title">🎯 矿场1：身体记忆</div>
+                    <div class="mine-desc">童年家里的味道、紧张时的手部动作、父母身上最具体的特征...</div>
+                </div>
+                
+                <div class="mine-box">
+                    <div class="mine-title">💬 矿场2：语言指纹</div>
+                    <div class="mine-desc">你的口头禅、给特定事物起的专属名字、描述情绪的独特比喻...</div>
+                </div>
+                
+                <div class="mine-box">
+                    <div class="mine-title">💔 矿场3：失败清单</div>
+                    <div class="mine-desc">搞砸过的事、尴尬瞬间、没有反转的真实遗憾...</div>
+                </div>
+                
+                <div class="mine-box">
+                    <div class="mine-title">📦 矿场4：物品考古</div>
+                    <div class="mine-desc">用了五年以上的物品、搬家三次都没扔的东西...</div>
+                </div>
+                
+                <div class="mine-box">
+                    <div class="mine-title">🕐 矿场5：时间节律</div>
+                    <div class="mine-desc">固定会做的无目的习惯、特定时间才会做的事...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 三层锻造 -->
+        <div class="manual-section">
+            <h3 class="section-title">第二部分：心锚的三层锻造</h3>
+            <div class="section-content">
+                <div class="phase-box">
+                    <div class="phase-title">第一层：提取（去情境化）</div>
+                    <p style="font-size:13px;color:rgba(255,255,255,0.7)">
+                        原材料（真实的你）→ 符号（抽离出来的元素）<br>
+                        <span class="highlight">示例：</span>外婆用蓝边碗盛粥 → <span class="highlight">蓝边碗</span>
+                    </p>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">第二层：编码（赋予规则）</div>
+                    <p style="font-size:13px;color:rgba(255,255,255,0.7)">
+                        符号 → 系统（可重复出现的模式）<br>
+                        <span class="highlight">规则设定：</span><br>
+                        • 出现时机：每期固定时间点<br>
+                        • 出现方式：不说话，3秒后移出画面<br>
+                        • 变化逻辑：每期位置略有不同
+                    </p>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">第三层：封印（制造门槛）</div>
+                    <p style="font-size:13px;color:rgba(255,255,255,0.7)">
+                        系统 → 秘仪（只有圈内人懂的暗号）<br>
+                        <span class="highlight">分层解码：</span><br>
+                        第一层（路人）：无感划过<br>
+                        第二层（好奇者）：开始留意<br>
+                        第三层（探索者）：猜测含义<br>
+                        第四层（核心粉）：线索串联
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 五个阶段 -->
+        <div class="manual-section">
+            <h3 class="section-title">第三部分：种心锚的五个阶段</h3>
+            <div class="section-content">
+                
+                <div class="phase-box">
+                    <div class="phase-title">Phase 1：预埋期（第1-10期）</div>
+                    <p style="font-size:12px;margin-bottom:10px">目标：让符号出现，但不解释，制造"怪异感"</p>
+                    <ul class="check-list">
+                        <li>选定1-2个心锚符号</li>
+                        <li>每期固定时间/位置出现，保持绝对一致</li>
+                        <li>绝不主动提及</li>
+                        <li>等待第一批"发现者"出现</li>
+                    </ul>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">Phase 2：萌芽期（第11-30期）</div>
+                    <p style="font-size:12px;margin-bottom:10px">目标：让发现者感到被看见</p>
+                    <ul class="check-list">
+                        <li>评论区回复发现者："被你发现了"</li>
+                        <li>给心锚增加微小变化</li>
+                        <li>表现出"它确实有含义"</li>
+                        <li>仍然不解释含义</li>
+                    </ul>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">Phase 3：生长期（第31-60期）</div>
+                    <p style="font-size:12px;margin-bottom:10px">目标：让心锚成为系列的"固定节目"</p>
+                    <ul class="check-list">
+                        <li>开发互动玩法</li>
+                        <li>心锚与内容产生关联</li>
+                        <li>培养"黑话"</li>
+                        <li>老粉自发成为讲解员</li>
+                    </ul>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">Phase 4：揭晓期（第61-100期）</div>
+                    <p style="font-size:12px;margin-bottom:10px">目标：给心锚赋予情感重量，但保留余韵</p>
+                    <ul class="check-list">
+                        <li>选择特殊节点</li>
+                        <li>第一次完整讲述故事，但只说<span class="highlight">70%</span></li>
+                        <li>留下明确的"未完待续"</li>
+                        <li>让心锚从"背景"变"主角"一次</li>
+                    </ul>
+                </div>
+                
+                <div class="phase-box">
+                    <div class="phase-title">Phase 5：传承期（第100期以后）</div>
+                    <p style="font-size:12px;margin-bottom:10px">目标：心锚不再属于你，属于社群</p>
+                    <ul class="check-list">
+                        <li>收集用户与心锚相关的故事</li>
+                        <li>让用户的心锚进入你的内容</li>
+                        <li>开发新的心锚，让老心锚"带新人"</li>
+                        <li>偶尔"消失"一次，制造焦虑与回归</li>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- 禁忌清单 -->
+        <div class="manual-section">
+            <h3 class="section-title">第四部分：种心锚的禁忌清单</h3>
+            <div class="section-content">
+                <div class="warning-box">
+                    <div class="warning-title">❌ 绝对不要做</div>
+                    <div class="warning-text">
+                        • 第一期就解释心锚的含义（没有好奇，就没有念想）<br>
+                        • 心锚出现得太频繁（会贬值，变成噪音）<br>
+                        • 为了心锚而硬造故事（用户能闻出虚假）<br>
+                        • 心锚太复杂，需要说明书才能懂
+                    </div>
+                </div>
+                
+                <div class="warning-box">
+                    <div class="warning-title">⚠️ 谨慎做</div>
+                    <div class="warning-text">
+                        • 多个心锚同时出现（建议：先建立一个）<br>
+                        • 心锚与商业植入结合（容易破坏纯粹性）<br>
+                        • 在其他平台提前泄露心锚含义
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 总结 -->
+        <div class="manual-section" style="text-align:center;padding:20px 0 40px;">
+            <p style="font-size:15px;line-height:2;color:rgba(255,255,255,0.9);font-style:italic;">
+                "先让你的心锚成为用户的'怪癖'<br>
+                （为什么他总这样？）<br><br>
+                再让它成为用户的'执念'<br>
+                （这次会有什么不同？）<br><br>
+                最后让它成为用户的'念想'<br>
+                （看到它就会想起某个时刻的自己）"
+            </p>
+            <button class="guide-btn" onclick="showPage('home')" style="margin-top:30px;">返回首页</button>
+        </div>
+    </div>
+
+    <script>
+        // 问题数据
+        const questions = [
+            {
+                text: "当你走进一个陌生的房间，<br>什么会第一时间抓住你的注意力？",
+                options: [
+                    { text: "某种熟悉的味道——让我想起某个人或某个时刻", scores: { A: 2, B: 1, C: 0 } },
+                    { text: "一件旧物——它身上仿佛能看到时间的痕迹", scores: { A: 0, B: 2, C: 1 } },
+                    { text: "一个重复出现的动作或习惯——比如某人整理东西的方式", scores: { A: 1, B: 0, C: 2 } }
+                ]
+            },
+            {
+                text: "你保留最久的一件东西是什么？<br>为什么舍不得扔？",
+                options: [
+                    { text: "一封没寄出的信或一段没说完的话——那是我真实的情感", scores: { A: 2, B: 1, C: 0 } },
+                    { text: "一个已经没用的物品——它见证了我某段重要的时光", scores: { A: 0, B: 2, C: 1 } },
+                    { text: "某种身体记忆——每次闻到、听到、触摸到就会想起", scores: { A: 1, B: 0, C: 2 } }
+                ]
+            },
+            {
+                text: "午夜梦回，<br>什么最容易让你陷入回忆？",
+                options: [
+                    { text: "一首老歌——那首歌里有我说不出的情绪", scores: { A: 2, B: 0, C: 1 } },
+                    { text: "某个特定的日期或季节——每年到那个时候就会", scores: { A: 1, B: 2, C: 0 } },
+                    { text: "某种食物的味道——那是某个人的专属味道", scores: { A: 0, B: 1, C: 2 } }
+                ]
+            },
+            {
+                text: "你最害怕失去的是什么？",
+                options: [
+                    { text: "那些还没来得及说出口的话", scores: { A: 2, B: 1, C: 0 } },
+                    { text: "那些见证过我成长的旧物", scores: { A: 0, B: 2, C: 1 } },
+                    { text: "那种特定时刻才有的感觉", scores: { A: 1, B: 0, C: 2 } }
+                ]
+            },
+            {
+                text: "如果你要给未来的自己<br>藏一个「彩蛋」，你会？",
+                options: [
+                    { text: "写一段话，在某个特定的日子才能打开", scores: { A: 2, B: 0, C: 1 } },
+                    { text: "留下一件物品，在某个地方等着被发现", scores: { A: 0, B: 2, C: 1 } },
+                    { text: "创建一个只有特定时刻才会出现的仪式", scores: { A: 1, B: 1, C: 2 } }
+                ]
+            },
+            {
+                text: "你最珍贵的记忆<br>通常以什么形式出现？",
+                options: [
+                    { text: "某个具体的对话或话语", scores: { A: 2, B: 0, C: 0 } },
+                    { text: "某个清晰的画面或场景", scores: { A: 0, B: 2, C: 0 } },
+                    { text: "某种难以名状的感觉或氛围", scores: { A: 0, B: 0, C: 2 } }
+                ]
+            }
+        ];
+        
+        // 结果数据
+        const results = {
+            A: {
+                type: "未寄出型心锚",
+                title: "语言的执念者",
+                desc: "你的心锚藏在那些「没说出口的话」里。你擅长用语言表达，却总是把最真实的情感藏起来。那些未完成的对话、草稿箱里的文字、想发又删掉的消息，都是你的念想。你不是不会说，而是太珍视，所以宁愿沉默也不愿轻率。",
+                anchors: [
+                    "📝 草稿箱里存了很久的消息",
+                    "💭 只对特定人才会说的口头禅", 
+                    "📮 写了但没寄出的信",
+                    "🎵 那首歌里你想说的话",
+                    "🌙 深夜编辑又删除的朋友圈"
+                ],
+                icon: "message"
+            },
+            B: {
+                type: "物件型心锚", 
+                title: "时间的收藏家",
+                desc: "你的心锚藏在那些「磨旧的物品」里。你相信物比人长久，物件是时间的琥珀。那个褪色的钥匙扣、发黄的票据、已经坏掉却舍不得扔的东西，都承载着你的记忆。对你来说，触摸它们就是触摸过去的自己。",
+                anchors: [
+                    "🔑 磨旧的钥匙扣或挂件",
+                    "📷 低画质但舍不得删的照片",
+                    "🎫 已经作废的票据或卡片",
+                    "👕 不合身但还在的衣服",
+                    "📦 搬家三次都没扔的盒子"
+                ],
+                icon: "box"
+            },
+            C: {
+                type: "感官型心锚",
+                title: "身体的记忆者", 
+                desc: "你的心锚藏在那些「身体记得但语言无法描述」的感觉里。某种气味、某种温度、某种触感，能瞬间把你拉回过去。你很难解释为什么，但你的身体知道。那些感官记忆是你与过去最直接的连接。",
+                anchors: [
+                    "🌧️ 某种天气特有的情绪",
+                    "🍃 让你想起特定时刻的气味",
+                    "🎶 随机播放却击中你的老歌",
+                    "🤲 紧张时无意识的小动作",
+                    "🌅 某个特定时段的光线"
+                ],
+                icon: "sense"
+            }
+        };
+        
+        let currentQuestion = 0;
+        let scores = { A: 0, B: 0, C: 0 };
+        let selectedOption = null;
+        
+        // 初始化粒子背景
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // 页面切换
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+        
+        // 开始测试
+        function startQuiz() {
+            currentQuestion = 0;
+            scores = { A: 0, B: 0, C: 0 };
+            showPage('question');
+            renderQuestion();
+        }
+        
+        // 渲染问题
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('qNumber').textContent = `问题 ${currentQuestion + 1}/${questions.length}`;
+            document.getElementById('qText').innerHTML = q.text;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.innerHTML = `<div class="option-text">${opt.text}</div>`;
+                div.onclick = () => selectOption(idx);
+                optionsContainer.appendChild(div);
+            });
+            
+            // 更新进度条
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            selectedOption = null;
+            document.getElementById('nextBtn').classList.remove('show');
+        }
+        
+        // 选择选项
+        function selectOption(idx) {
+            document.querySelectorAll('.option').forEach((el, i) => {
+                el.classList.toggle('selected', i === idx);
+            });
+            selectedOption = idx;
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            if (selectedOption === null) return;
+            
+            // 记录分数
+            const q = questions[currentQuestion];
+            const opt = q.options[selectedOption];
+            for (let type in opt.scores) {
+                scores[type] += opt.scores[type];
+            }
+            
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                showResult();
+            } else {
+                renderQuestion();
+            }
+        }
+        
+        // 显示结果
+        function showResult() {
+            // 计算最高分的类型
+            let maxType = 'A';
+            let maxScore = scores.A;
+            if (scores.B > maxScore) { maxType = 'B'; maxScore = scores.B; }
+            if (scores.C > maxScore) { maxType = 'C'; maxScore = scores.C; }
+            
+            const result = results[maxType];
+            
+            document.getElementById('resultType').textContent = result.type;
+            document.getElementById('resultTitle').textContent = result.title;
+            document.getElementById('resultDesc').textContent = result.desc;
+            
+            // 渲染清单
+            const listContainer = document.getElementById('anchorsList');
+            listContainer.innerHTML = result.anchors.map(item => 
+                `<div class="anchor-item">${item}</div>`
+            ).join('');
+            
+            // 渲染图标
+            const iconSvg = getIconSvg(result.icon);
+            document.getElementById('resultIconSvg').innerHTML = iconSvg;
+            
+            showPage('result');
+        }
+        
+        // 获取图标SVG
+        function getIconSvg(type) {
+            const icons = {
+                message: `<svg viewBox="0 0 100 100" style="width:100%;height:100%;"><circle cx="50" cy="50" r="45" fill="none" stroke="#e94560" stroke-width="2"/><rect x="25" y="30" width="50" height="35" rx="5" fill="none" stroke="#e94560" stroke-width="2"/><path d="M30 45 L45 55 L60 40 L70 50" fill="none" stroke="#e94560" stroke-width="2"/></svg>`,
+                box: `<svg viewBox="0 0 100 100" style="width:100%;height:100%;"><rect x="25" y="35" width="50" height="40" fill="none" stroke="#e94560" stroke-width="2"/><path d="M25 35 L50 20 L75 35" fill="none" stroke="#e94560" stroke-width="2"/><circle cx="50" cy="55" r="10" fill="none" stroke="#e94560" stroke-width="1.5"/></svg>`,
+                sense: `<svg viewBox="0 0 100 100" style="width:100%;height:100%;"><circle cx="50" cy="35" r="20" fill="none" stroke="#e94560" stroke-width="2"/><path d="M30 55 Q50 80 70 55" fill="none" stroke="#e94560" stroke-width="2"/><circle cx="50" cy="35" r="5" fill="#e94560"/></svg>`
+            };
+            return icons[type] || icons.message;
+        }
+        
+        // 分享结果
+        function shareResult() {
+            const type = document.getElementById('resultType').textContent;
+            const title = document.getElementById('resultTitle').textContent;
+            const text = `我的心锚类型是「${type}」——${title}。来测测你的心锚是什么？`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '心锚探索器',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                // 复制到剪贴板
+                navigator.clipboard.writeText(text + ' ' + window.location.href).then(() => {
+                    alert('已复制分享内容！');
+                });
+            }
+        }
+        
+        // 重新开始
+        function restart() {
+            currentQuestion = 0;
+            scores = { A: 0, B: 0, C: 0 };
+            showPage('home');
+        }
+        
+        // 初始化
+        initParticles();
+    </script>
+</body>
+</html>
